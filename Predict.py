@@ -179,4 +179,62 @@ def dpe(soup):
             return valeur.split('(')[0].strip()
     return "-"
 
-print(nbrsdb(getsoup("https://www.immo-entre-particuliers.com/annonce-martinique-le-vauclin/409025-vends-maison-sur-la-plage-de-pointe-faula-martinique")))
+def informations(soup):
+    """
+    Agrège toutes les informations d'une annonce immobilière dans un format CSV.
+    
+    Parameters:
+        soup (BeautifulSoup): Objet BeautifulSoup de la page HTML
+        
+    Returns:
+        str: Chaîne formatée "Ville,Type,Surface,NbrPieces,NbrChambres,NbrSdb,DPE,Prix"
+        
+    Raises:
+        NonValide: Si l'annonce est non conforme (type/prix invalides ou manquants)
+        
+    Exemple:
+        "Le Vauclin,Maison,140,5,3,1,-,370000"
+        
+    Processus:
+        1. Extraction séquentielle de chaque caractéristique
+        2. Validation automatique via les appels de fonctions existants
+        3. Formatage des valeurs manquantes avec '-'
+        4. Concaténation finale avec contrôle des exceptions
+    """
+    try:
+        # 1. Extraction de la ville (nécessite une localisation valide)
+        ville_val = ville(soup)  # Peut retourner "Ville inconnue" mais ne lève pas d'exception
+        
+        # 2. Validation du type (lève NonValide si absent/invalide)
+        type_val = type(soup)    # Maison/Appartement uniquement
+        
+        # 3. Extraction des données optionnelles (retournent "-" si manquantes)
+        surface_val = surface(soup)          # "140" ou "-"
+        nbrpieces_val = nbrpieces(soup)      # "5" ou "-"
+        nbrchambres_val = nbrchambres(soup)  # "3" ou "-"
+        nbrsdb_val = nbrsdb(soup)            # "1" ou "-"
+        dpe_val = dpe(soup)                  # "D" ou "-"
+        
+        # 4. Validation du prix (lève NonValide si <10k€ ou absent)
+        prix_val = prix(soup)    # Format numérique sans "€"
+        
+    except NonValide as e:
+        # Propagation de l'exception avec contexte enrichi
+        raise NonValide(f"Annonce non conforme - {str(e)}") from e
+    
+    # 5. Assemblage des valeurs dans l'ordre requis
+    donnees = [
+        ville_val,       # Peut être "Ville inconnue"
+        type_val,        # Validé
+        surface_val,     # "-" si absent
+        nbrpieces_val,   # "-" si absent
+        nbrchambres_val, # "-" si absent
+        nbrsdb_val,      # "-" si absent
+        dpe_val,         # "-" si absent
+        prix_val         # Validé
+    ]
+    
+    # 6. Conversion en chaîne CSV
+    return ",".join(donnees)
+
+print(informations(getsoup("https://www.immo-entre-particuliers.com/annonce-val-de-marne-nogent-sur-marne/409496-magnifique-studio")))
