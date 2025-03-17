@@ -127,6 +127,18 @@ def surface(soup):
             return valeur.replace('m²', '').strip()
     return "-"
 
+def nbrpieces(soup):
+    ul = get_caracteristiques_section(soup)
+    if not ul:
+        return "-"
+    
+    for li in ul.find_all('li'):
+        label = li.find('span', class_='text-muted')
+        if label and 'pièces' in label.text:
+            valeur = li.find('span', class_='fw-bold').text.strip()
+            return valeur
+    return "-"
 
 
-print(surface(getsoup("https://www.immo-entre-particuliers.com/annonce-martinique-le-vauclin/409025-vends-maison-sur-la-plage-de-pointe-faula-martinique")))
+
+print(nbrpieces(getsoup("https://www.immo-entre-particuliers.com/annonce-martinique-le-vauclin/409025-vends-maison-sur-la-plage-de-pointe-faula-martinique")))
