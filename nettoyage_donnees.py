@@ -1,4 +1,6 @@
 import pandas as pd
+import unicodedata
+import re
 
 # Question 8 : Importer le CSV dans un DataFrame
 annonces = pd.read_csv('annonces.csv')  # Remplacez par le nom de votre fichier CSV
@@ -103,3 +105,29 @@ print(villes[["label", "latitude", "longitude", "department_name", "region_name"
 
 print("\n=== Structure du DataFrame villes ===")
 print(villes.info())
+
+# Question 13 : Harmoniser les formats des noms de villes
+
+# Fonction pour nettoyer les noms de villes
+def nettoyer_nom_ville(nom):
+    # Convertir en minuscules
+    nom = nom.lower()
+    # Supprimer les accents
+    nom = unicodedata.normalize('NFKD', nom).encode('ASCII', 'ignore').decode('utf-8')
+    # Remplacer les caractères spéciaux, espaces, tirets et apostrophes
+    nom = re.sub(r"[-'’ ,]", "", nom)
+    # Cas particulier pour Paris (ex: "Paris 12e" → "paris12")
+    if "paris" in nom:
+        # Extraire le numéro d'arrondissement (ex: "paris12e" → "paris12")
+        nom = re.sub(r"paris(\d+).*", r"paris\1", nom)
+    return nom
+
+# Appliquer le nettoyage aux colonnes "Ville" (annonces) et "label" (villes)
+annonces["Ville"] = annonces["Ville"].apply(nettoyer_nom_ville)
+villes["label"] = villes["label"].apply(nettoyer_nom_ville)
+
+# Vérification des cas particuliers
+print("=== Exemples de nettoyage ===")
+print("Avant : 'Saint-Étienne' → Après :", nettoyer_nom_ville("Saint-Étienne"))  # → "saintetienne"
+print("Avant : 'Nogent-sur-Marne' → Après :", nettoyer_nom_ville("Nogent-sur-Marne"))  # → "nogentsurmarne"
+print("Avant : 'Paris 12e' → Après :", nettoyer_nom_ville("Paris 12e"))  # → "paris12"
