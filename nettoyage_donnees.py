@@ -67,3 +67,13 @@ print(annonces.info())
 print("\nMoyennes utilisées :")
 for colonne in colonnes_a_nettoyer:
     print(f"{colonne} : {annonces[colonne].mean():.2f}")
+    
+# Question 11 : Création de variables indicatrices pour "Type" et "DPE"
+annonces = pd.get_dummies(annonces, columns=["Type", "DPE"], prefix=["Type", "DPE"])
+
+# Vérification des nouvelles colonnes
+print("=== Colonnes après get_dummies() ===")
+print(annonces.columns.tolist())
+
+print("\n=== Aperçu des variables indicatrices ===")
+print(annonces[["Type_Maison", "Type_Appartement", "DPE_A", "DPE_B", "DPE_C", "DPE_D", "DPE_E", "DPE_F", "DPE_G", "DPE_Vierge"]].head(3))
