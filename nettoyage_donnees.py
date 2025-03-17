@@ -68,10 +68,23 @@ print("\nMoyennes utilisées :")
 for colonne in colonnes_a_nettoyer:
     print(f"{colonne} : {annonces[colonne].mean():.2f}")
     
-# Question 11 : Création de variables indicatrices pour "Type" et "DPE"
-annonces = pd.get_dummies(annonces, columns=["Type", "DPE"], prefix=["Type", "DPE"])
+# Question 11 : Création de variables indicatrices (compatible avec pandas < 1.5.0)
 
-# Vérification des nouvelles colonnes
+# Définir manuellement toutes les catégories possibles pour "DPE"
+categories_dpe = ["A", "B", "C", "D", "E", "F", "G", "Vierge"]
+
+# Forcer les catégories manquantes avec pd.Categorical
+annonces["DPE"] = pd.Categorical(annonces["DPE"], categories=categories_dpe)
+
+# Appliquer get_dummies() normalement
+annonces = pd.get_dummies(
+    annonces,
+    columns=["Type", "DPE"],
+    prefix=["Type", "DPE"],
+    dtype=int  # Convertir en 0/1 au lieu de True/False
+)
+
+# Vérifier les colonnes générées
 print("=== Colonnes après get_dummies() ===")
 print(annonces.columns.tolist())
 
