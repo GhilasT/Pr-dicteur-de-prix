@@ -46,3 +46,24 @@ annonces["DPE"] = annonces["DPE"].replace("-", "Vierge")
 print("=== Vérification après remplacement ===")
 print("Valeurs uniques dans DPE :", annonces["DPE"].unique())
 print("Nombre de 'Vierge' dans DPE :", (annonces["DPE"] == "Vierge").sum())
+# Question 10 : Remplacer les valeurs manquantes par la moyenne
+colonnes_a_nettoyer = ["Surface", "NbrPieces", "NbrChambres", "NbrSdb"]
+
+# Conversion des colonnes en numérique (remplacement des '-' par NaN)
+for colonne in colonnes_a_nettoyer:
+    annonces[colonne] = pd.to_numeric(annonces[colonne], errors="coerce")
+
+# Calcul des moyennes et remplacement des NaN
+for colonne in colonnes_a_nettoyer:
+    moyenne_colonne = annonces[colonne].mean()
+    annonces[colonne].fillna(moyenne_colonne, inplace=True)
+
+# Suppression des lignes avec des valeurs manquantes résiduelles (si besoin)
+annonces.dropna(inplace=True)
+
+# Vérification finale
+print("=== Vérification après nettoyage ===")
+print(annonces.info())
+print("\nMoyennes utilisées :")
+for colonne in colonnes_a_nettoyer:
+    print(f"{colonne} : {annonces[colonne].mean():.2f}")
