@@ -59,5 +59,37 @@ def prix(soup):
         return prix_texte
     else:
         raise NonValide("Prix non trouvé")
+
+def ville(soup):
+    """
+    Extrait la ville d'une annonce immobilière à partir de sa soupe.
     
-print(prix(getsoup("https://www.immo-entre-particuliers.com/annonce-martinique-le-francois/409505-terrain-viabilise")))
+    Parameters:
+    soup (BeautifulSoup): La soupe de la page HTML de l'annonce
+    
+    Returns:
+    str: La ville où se trouve le bien immobilier
+    """
+    # Recherche de l'icône de localisation puis remontée au parent h2
+    span_element = soup.find("span", class_="fa-location-dot")
+    if span_element:
+        h2_element = span_element.find_parent("h2")
+        if h2_element:
+            # Extraction du texte complet et nettoyage
+            localisation_texte = h2_element.get_text(strip=True)
+            
+            # Découpage pour obtenir la dernière partie après la dernière virgule
+            parties = localisation_texte.split(", ")
+            if len(parties) > 0:
+                return parties[-1]
+    
+    # Fallback alternatif si la méthode précédente échoue
+    balise_ville = soup.find("h2")  # Recherche directe dans le premier h2
+    if balise_ville:
+        texte = balise_ville.get_text(strip=True)
+        if ", " in texte:
+            return texte.split(", ")[-1]
+    
+    return "Ville inconnue"
+
+print(ville(getsoup("https://www.immo-entre-particuliers.com/annonce-martinique-le-francois/409505-terrain-viabilise")))
