@@ -91,5 +91,14 @@ def ville(soup):
             return texte.split(", ")[-1]
     
     return "Ville inconnue"
+def get_caracteristiques_section(soup):
+    """
+    Trouve la section des caractéristiques à partir du header "Caractéristiques".
+    Retourne la balise <ul> contenant les données ou None si non trouvée.
+    """
+    header = soup.find(lambda tag: tag.name in ['h2', 'h3', 'div'] 
+                       and "Caractéristiques" in tag.text)
+    return header.find_next('ul') if header else None
 
-print(ville(getsoup("https://www.immo-entre-particuliers.com/annonce-martinique-le-francois/409505-terrain-viabilise")))
+
+print(get_caracteristiques_section(getsoup("https://www.immo-entre-particuliers.com/annonce-martinique-le-francois/409505-terrain-viabilise")))
