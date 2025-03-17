@@ -158,9 +158,13 @@ def nbrsdb(soup):
     
     for li in ul.find_all('li'):
         label = li.find('span', class_='text-muted')
-        if label and ('salles de bain' in label.text or 'sdb' in label.text.lower()):
-            valeur = li.find('span', class_='fw-bold').text.strip()
-            return valeur
+        if label:
+            label_text = label.text.lower()
+            # Gestion de la faute d'orthographe ET des variantes
+            if any(keyword in label_text for keyword in ['salle de bain', 'sdb', 'sales de bain']):
+                valeur = li.find('span', class_='fw-bold').text.strip()
+                return valeur or "-"  # Garde-fou supplémentaire
+    
     return "-"
 
 def dpe(soup):
