@@ -1,5 +1,9 @@
 import requests
 from bs4 import BeautifulSoup
+import csv
+import time
+from urllib.parse import urljoin
+import random
 
 def getsoup(url):
     """
@@ -70,27 +74,20 @@ def ville(soup):
     Returns:
     str: La ville où se trouve le bien immobilier
     """
-    # Recherche de l'icône de localisation puis remontée au parent h2
-    span_element = soup.find("span", class_="fa-location-dot")
-    if span_element:
-        h2_element = span_element.find_parent("h2")
-        if h2_element:
-            # Extraction du texte complet et nettoyage
-            localisation_texte = h2_element.get_text(strip=True)
-            
-            # Découpage pour obtenir la dernière partie après la dernière virgule
-            parties = localisation_texte.split(", ")
-            if len(parties) > 0:
-                return parties[-1]
+    localisation_element = soup.find("h2", class_="mt-0")
+    if not localisation_element:
+        return "Ville inconnue"
     
-    # Fallback alternatif si la méthode précédente échoue
-    balise_ville = soup.find("h2")  # Recherche directe dans le premier h2
-    if balise_ville:
-        texte = balise_ville.get_text(strip=True)
-        if ", " in texte:
-            return texte.split(", ")[-1]
+    localisation_texte = localisation_element.get_text(strip=True)
     
-    return "Ville inconnue"
+    # Supprimer le code postal s'il existe
+    if localisation_texte[-1].isdigit():
+        dernier_espace = localisation_texte.rfind(' ')
+        localisation_texte = localisation_texte[:dernier_espace]
+    
+    dernier_separateur = localisation_texte.rfind(", ")
+    
+    return localisation_texte[dernier_separateur+2:] if dernier_separateur != -1 else localisation_texte
 class NonValide(Exception):
     pass
 
@@ -235,6 +232,65 @@ def informations(soup):
     ]
     
     # 6. Conversion en chaîne CSV
-    return ",".join(donnees)
+    return donnees
 
-print(informations(getsoup("https://www.immo-entre-particuliers.com/annonce-val-de-marne-nogent-sur-marne/409496-magnifique-studio")))
+BASE_URL = "https://www.immo-entre-particuliers.com"
+CSV_HEADER = ["Ville", "Type", "Surface", "NbrPieces", "NbrChambres", "NbrSdb", "DPE", "Prix"]
+
+def scraper_annonces():
+    """Script principal qui scrape toutes les annonces"""
+    HEADERS = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
+    
+    try:
+        with open('annonces.csv', 'w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerow(CSV_HEADER)
+            
+            page = 1
+            first = True
+            while first or len(annonces) > 0:
+                first = False
+                try:
+                    # Construction URL
+                    url = f"{BASE_URL}/annonces/france-ile-de-france/{page}" if page > 1 else f"{BASE_URL}/annonces/france-ile-de-france"
+                    
+                    # Requête
+                    response = requests.get(url, headers=HEADERS, timeout=15)
+                    soup = BeautifulSoup(response.text, 'html.parser')
+                    
+                    # Extraction annonces
+                    annonces = soup.select('h3.mt-0 a[href^="/annonce-"]')
+                    print(f"Page {page} : {len(annonces)} annonces trouvées")
+                    
+                    for a in annonces:
+                        annonce_url = urljoin(BASE_URL, a['href'])
+                        try:
+                            annonce_soup = getsoup(annonce_url)
+                            donnees = informations(annonce_soup)
+                            print(f"  Données validées : {donnees}")
+                            writer.writerow(donnees)
+                            
+                        except NonValide as e:
+                            print(f"  Annonce ignorée : {str(e)}")
+                        except Exception as e:
+                            print(f"  Erreur technique : {str(e)}")
+                        
+                        time.sleep(1)
+                        
+                    page += 1
+                    time.sleep(2)
+                    
+                except Exception as e:
+                    print(f"Erreur page {page} : {str(e)}")
+                    break
+                    
+    except Exception as e:
+        print(f"Erreur globale : {str(e)}")
+    finally:
+        print("Scraping terminé - Fichier sauvegardé")
+            
+if __name__ == "__main__":
+    scraper_annonces()
+    print("Scraping terminé ! Fichier annonces.csv généré.")
