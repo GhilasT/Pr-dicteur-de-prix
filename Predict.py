@@ -91,39 +91,42 @@ def ville(soup):
             return texte.split(", ")[-1]
     
     return "Ville inconnue"
+class NonValide(Exception):
+    pass
+
 def get_caracteristiques_section(soup):
-    """
-    Trouve la section des caractéristiques à partir du header "Caractéristiques".
-    Retourne la balise <ul> contenant les données ou None si non trouvée.
-    """
-    header = soup.find(lambda tag: tag.name in ['h2', 'h3', 'div'] 
-                       and "Caractéristiques" in tag.text)
-    return header.find_next('ul') if header else None
+    """Récupère la section des caractéristiques"""
+    section = soup.find('div', class_='product-features')
+    if section:
+        return section.find('ul', class_='list-inline')
+    return None
 
 def type(soup):
-    section = get_caracteristiques_section(soup)
-    if not section:
+    ul = get_caracteristiques_section(soup)
+    if not ul:
         raise NonValide("Section caractéristiques manquante")
     
-    for li in section.find_all('li'):
-        if 'type' in li.text.lower():
-            valeur = li.get_text(strip=True).split(':', 1)[-1].strip()
+    for li in ul.find_all('li'):
+        label = li.find('span', class_='text-muted')
+        if label and 'Type' in label.text:
+            valeur = li.find('span', class_='fw-bold').text.strip()
             if valeur not in {"Maison", "Appartement"}:
-                raise NonValide(f"Type invalide : {valeur}")
+                raise NonValide(f"Type de bien non valide : {valeur}")
             return valeur
-    raise NonValide("Type non trouvé")
+    raise NonValide("Type de bien non trouvé")
 
 def surface(soup):
-    section = get_caracteristiques_section(soup)
-    if not section:
+    ul = get_caracteristiques_section(soup)
+    if not ul:
         return "-"
     
-    for li in section.find_all('li'):
-        if 'surface' in li.text.lower():
-            valeur = li.get_text(strip=True).split(':', 1)[-1]
-            return valeur.replace('m²', '').strip() or "-"
+    for li in ul.find_all('li'):
+        label = li.find('span', class_='text-muted')
+        if label and 'Surface' in label.text:
+            valeur = li.find('span', class_='fw-bold').text.strip()
+            return valeur.replace('m²', '').strip()
     return "-"
 
 
 
-print(get_caracteristiques_section(getsoup("https://www.immo-entre-particuliers.com/annonce-martinique-le-francois/409505-terrain-viabilise")))
+print(surface(getsoup("https://www.immo-entre-particuliers.com/annonce-martinique-le-vauclin/409025-vends-maison-sur-la-plage-de-pointe-faula-martinique")))
