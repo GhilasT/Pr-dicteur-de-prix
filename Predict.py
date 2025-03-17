@@ -113,6 +113,17 @@ def type(soup):
             return valeur
     raise NonValide("Type non trouvé")
 
+def surface(soup):
+    section = get_caracteristiques_section(soup)
+    if not section:
+        return "-"
+    
+    for li in section.find_all('li'):
+        if 'surface' in li.text.lower():
+            valeur = li.get_text(strip=True).split(':', 1)[-1]
+            return valeur.replace('m²', '').strip() or "-"
+    return "-"
+
 
 
 print(get_caracteristiques_section(getsoup("https://www.immo-entre-particuliers.com/annonce-martinique-le-francois/409505-terrain-viabilise")))
