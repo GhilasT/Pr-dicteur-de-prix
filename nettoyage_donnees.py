@@ -77,3 +77,16 @@ print(annonces.columns.tolist())
 
 print("\n=== Aperçu des variables indicatrices ===")
 print(annonces[["Type_Maison", "Type_Appartement", "DPE_A", "DPE_B", "DPE_C", "DPE_D", "DPE_E", "DPE_F", "DPE_G", "DPE_Vierge"]].head(3))
+
+# Charger le fichier cities.csv avec les colonnes fournies
+villes = pd.read_csv("cities.csv")
+
+# Vérification de l'importation
+print("=== Colonnes du fichier cities.csv ===")
+print(villes.columns.tolist())
+
+print("\n=== Aperçu des données (3 premières lignes) ===")
+print(villes[["label", "latitude", "longitude", "department_name", "region_name"]].head(3))
+
+print("\n=== Structure du DataFrame villes ===")
+print(villes.info())
