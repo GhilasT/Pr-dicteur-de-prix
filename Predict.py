@@ -100,5 +100,19 @@ def get_caracteristiques_section(soup):
                        and "Caractéristiques" in tag.text)
     return header.find_next('ul') if header else None
 
+def type(soup):
+    section = get_caracteristiques_section(soup)
+    if not section:
+        raise NonValide("Section caractéristiques manquante")
+    
+    for li in section.find_all('li'):
+        if 'type' in li.text.lower():
+            valeur = li.get_text(strip=True).split(':', 1)[-1].strip()
+            if valeur not in {"Maison", "Appartement"}:
+                raise NonValide(f"Type invalide : {valeur}")
+            return valeur
+    raise NonValide("Type non trouvé")
+
+
 
 print(get_caracteristiques_section(getsoup("https://www.immo-entre-particuliers.com/annonce-martinique-le-francois/409505-terrain-viabilise")))
