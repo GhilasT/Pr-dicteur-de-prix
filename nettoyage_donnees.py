@@ -39,3 +39,10 @@ except ValueError as e:
 # Vérification de la présence des colonnes attendues
 colonnes_attendues = ['Ville', 'Type', 'Surface', 'NbrPieces', 'NbrChambres', 'NbrSdb', 'DPE', 'Prix']
 assert all(col in annonces.columns for col in colonnes_attendues), "Colonnes manquantes !"
+
+annonces["DPE"] = annonces["DPE"].replace("-", "Vierge")
+
+# Vérification
+print("=== Vérification après remplacement ===")
+print("Valeurs uniques dans DPE :", annonces["DPE"].unique())
+print("Nombre de 'Vierge' dans DPE :", (annonces["DPE"] == "Vierge").sum())
