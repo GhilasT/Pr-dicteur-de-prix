@@ -163,6 +163,16 @@ def nbrsdb(soup):
             return valeur
     return "-"
 
+def dpe(soup):
+    ul = get_caracteristiques_section(soup)
+    if not ul:
+        return "-"
+    
+    for li in ul.find_all('li'):
+        label = li.find('span', class_='text-muted')
+        if label and ('DPE' in label.text.upper() or 'énergie' in label.text.lower()):
+            valeur = li.find('span', class_='fw-bold').text.strip()
+            return valeur.split('(')[0].strip()
+    return "-"
 
-
-print(nbrchambres(getsoup("https://www.immo-entre-particuliers.com/annonce-martinique-le-vauclin/409025-vends-maison-sur-la-plage-de-pointe-faula-martinique")))
+print(nbrsdb(getsoup("https://www.immo-entre-particuliers.com/annonce-martinique-le-vauclin/409025-vends-maison-sur-la-plage-de-pointe-faula-martinique")))
