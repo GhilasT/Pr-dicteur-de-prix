@@ -151,6 +151,18 @@ def nbrchambres(soup):
             return valeur
     return "-"
 
+def nbrsdb(soup):
+    ul = get_caracteristiques_section(soup)
+    if not ul:
+        return "-"
+    
+    for li in ul.find_all('li'):
+        label = li.find('span', class_='text-muted')
+        if label and ('salles de bain' in label.text or 'sdb' in label.text.lower()):
+            valeur = li.find('span', class_='fw-bold').text.strip()
+            return valeur
+    return "-"
+
 
 
 print(nbrchambres(getsoup("https://www.immo-entre-particuliers.com/annonce-martinique-le-vauclin/409025-vends-maison-sur-la-plage-de-pointe-faula-martinique")))
